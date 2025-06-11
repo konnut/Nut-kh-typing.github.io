@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="km">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title> Khmer Typing BY KON NUT </title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #1a1a1a; /* Dark background */
+            color: #e0e0e0; /* Light text */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .container {
+            background-color: #2a2a2a; /* Slightly lighter dark background */
+            border-radius: 1rem; /* Rounded corners */
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3); /* Soft shadow */
+            max-width: 900px;
+            width: 100%;
+            padding: 2rem;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+        .word-display {
+            font-size: 1.8rem;
+            line-height: 1.6;
+            margin-bottom: 1.5rem;
+            min-height: 120px; /* Ensure enough height for words */
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-content: flex-start;
+            padding: 10px;
+            border: 1px solid #444;
+            border-radius: 0.75rem;
+            background-color: #333;
+            overflow: hidden;
+            position: relative; /* For scroll effects */
+        }
+        .word {
+            display: inline-block;
+            margin-right: 8px; /* Space between words */
+            margin-bottom: 5px; /* Space between lines */
+            white-space: nowrap; /* Keep words on one line until wrap */
+        }
+        .char {
+            color: #999; /* Default character color */
+        }
+        .char.correct {
+            color: #4CAF50; /* Green for correct */
+        }
+        .char.incorrect {
+            color: #F44336; /* Red for incorrect */
+            text-decoration: underline;
+        }
+        .char.current {
+            background-color: #555; /* Highlight current character */
+            border-radius: 3px;
+        }
+        .char.active-word-current {
+            border-bottom: 2px solid #64B5F6; /* Blue underline for current typing position */
+        }
+        .input-field {
+            font-size: 1.5rem;
+            padding: 0.75rem 1rem;
+            width: 80%;
+            max-width: 500px;
+            margin: 0 auto;
+            border: 2px solid #555;
+            border-radius: 0.75rem;
+            background-color: #333;
+            color: #e0e0e0;
+            outline: none;
+            transition: border-color 0.2s ease-in-out;
+            text-align: center;
+        }
+        .input-field:focus {
+            border-color: #64B5F6; /* Blue border on focus */
+        }
+        .results {
+            margin-top: 1.5rem;
+            font-size: 1.2rem;
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap; /* Allow wrapping on smaller screens */
+            gap: 1rem; /* Adjust gap for multiple lines */
+            color: #e0e0e0;
+        }
+        .results div {
+            padding: 0.5rem 1rem;
+            background-color: #3a3a3a;
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        .button {
+            background-color: #64B5F6; /* Blue button */
+            color: #1a1a1a;
+            padding: 0.8rem 2rem;
+            border: none;
+            border-radius: 0.75rem;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: background-color 0.2s ease-in-out, transform 0.1s ease-in-out;
+            margin-top: 1.5rem;
+            font-weight: 600;
+        }
+        .button:hover {
+            background-color: #42A5F5; /* Darker blue on hover */
+            transform: translateY(-2px);
+        }
+        .button:active {
+            transform: translateY(0);
+        }
+        .time-button {
+            margin-top: 0; /* Override default button margin */
+        }
+        .time-button.active {
+            background-color: #42A5F5; /* Highlight active time button */
+            border: 2px solid #64B5F6;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .container {
+                padding: 1.5rem;
+                gap: 1rem;
+            }
+            .word-display {
+                font-size: 1.4rem;
+                min-height: 100px;
+            }
+            .input-field {
+                font-size: 1.2rem;
+                width: 95%;
+            }
+            .results {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            .results div {
+                font-size: 1rem;
+            }
+            .button {
+                padding: 0.6rem 1.5rem;
+                font-size: 1rem;
+            }
+            .time-options {
+                flex-wrap: wrap;
+                justify-content: center;
+                gap: 0.75rem;
+            }
+            .time-button {
+                padding: 0.5rem 1rem;
+                font-size: 0.9rem;
+            }
+        }
+    </style>
+</head>
+<body class="antialiased">
+    <div class="container">
+        <h1 class="text-3xl font-bold text-blue-400 mb-4">Khmer Typing By Nut</h1>
+
+        <div class="time-options flex justify-center gap-4 mb-4">
+            <button class="time-button button" data-time="15">15s</button>
+            <button class="time-button button active" data-time="30">30s</button>
+            <button class="time-button button" data-time="60">60s</button>
+        </div>
+
+        <div id="word-display" class="word-display"></div>
+        <input type="text" id="typing-input" class="input-field" placeholder="ចាប់ផ្តើមវាយនៅទីនេះ...">
+        <div class="results">
+            <div>ល្បឿន: <span id="wpm">0</span> WPM</div>
+            <div>ភាពត្រឹមត្រូវ: <span id="accuracy">0</span>%</div>
+            <div>ពាក្យត្រឹមត្រូវ: <span id="correct-words">0</span></div>
+            <div>ពាក្យខុស: <span id="incorrect-words">0</span></div>
+            <div>ពេលវេលា: <span id="timer">30</span>s</div>
+        </div>
+        <button id="restart-button" class="button">ចាប់ផ្តើមឡើងវិញ</button>
+    </div>
+
+    <script>
+        // Array of common Khmer words
+        const khmerWords = [
+            "សួស្តី", "អរគុណ", "សូម", "បាទ", "ចាស", "ទេ", "លាហើយ", "ខ្ញុំ", "អ្នក", "យើង",
+            "គាត់", "វា", "នេះ", "នោះ", "នៅ", "ក្នុង", "លើ", "ក្រោម", "ក្បែរ", "ឆ្ងាយ",
+            "ធំ", "តូច", "ល្អ", "អាក្រក់", "ថ្មី", "ចាស់", "ច្រើន", "តិច", "ឥឡូវ", "ថ្ងៃនេះ",
+            "ថ្ងៃស្អែក", "ម្សិលមិញ", "ពេល", "ម៉ោង", "ឆ្នាំ", "ខែ", "សប្តាហ៍", "ព្រឹក", "ល្ងាច",
+            "យប់", "ទឹក", "បាយ", "នំប៉័ង", "កាហ្វេ", "តែ", "ញ៉ាំ", "ផឹក", "ទៅ", "មក",
+            "អង្គុយ", "ឈរ", "គេង", "ដើរ", "រត់", "និយាយ", "ស្តាប់", "មើល", "អាន", "សរសេរ",
+            "រៀន", "បង្រៀន", "ធ្វើ", "បាន", "មាន", "គ្មាន", "ស្រឡាញ់", "ស្អប់", "ចូលចិត្ត", "មិនចូលចិត្ត",
+            "សប្បាយ", "រីករាយ", "ពិបាក", "ឈឺ", "ជួយ", "បាទ", "ចាស", "សូម", "អរគុណ", "លាហើយ",
+            "ភាសា", "ខ្មែរ", "ប្រទេស", "ទីក្រុង", "ភូមិ", "ផ្ទះ", "សាលា", "ផ្សារ", "មន្ទីរពេទ្យ", "ផ្លូវ",
+            "ឡាន", "ម៉ូតូ", "កង់", "យន្តហោះ", "ទូក", "រថភ្លើង", "សៀវភៅ", "ប៊ិច", "ខ្មៅដៃ", "ក្រដាស"
+        ];
+
+        let words = [];
+        let currentWordIndex = 0;
+        let currentCharIndex = 0;
+        let startTime;
+        let timerInterval;
+        let testDuration = 30; // Default duration in seconds
+        let timeLeft = testDuration;
+        let hasStarted = false;
+        let correctWordsCount = 0; // New variable for correct words
+        let incorrectWordsCount = 0; // New variable for incorrect words
+
+        const wordDisplay = document.getElementById('word-display');
+        const typingInput = document.getElementById('typing-input');
+        const wpmSpan = document.getElementById('wpm');
+        const accuracySpan = document.getElementById('accuracy');
+        const timerSpan = document.getElementById('timer');
+        const correctWordsSpan = document.getElementById('correct-words'); // New span for correct words
+        const incorrectWordsSpan = document.getElementById('incorrect-words'); // New span for incorrect words
+        const restartButton = document.getElementById('restart-button');
+        const timeButtons = document.querySelectorAll('.time-button');
+
+        // Stores log of each character typed for final accuracy and WPM calculation
+        // Format: { typed: 'c', expected: 'e', isCorrect: true/false }
+        let characterTypingLog = []; 
+
+        // Function to shuffle an array
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        // Function to generate and display words
+        function generateWords() {
+            words = shuffleArray([...khmerWords]).slice(0, 50); // Get 50 random words
+            wordDisplay.innerHTML = ''; // Clear previous words
+
+            words.forEach((word, wordIndex) => {
+                const wordSpan = document.createElement('span');
+                wordSpan.classList.add('word');
+                if (wordIndex === 0) {
+                    wordSpan.classList.add('active-word');
+                }
+                word.split('').forEach((char) => {
+                    const charSpan = document.createElement('span');
+                    charSpan.classList.add('char');
+                    charSpan.textContent = char;
+                    wordSpan.appendChild(charSpan);
+                });
+                wordDisplay.appendChild(wordSpan);
+            });
+            highlightCurrentChar();
+        }
+
+        // Highlight the current character to be typed
+        function highlightCurrentChar() {
+            // Remove previous highlights
+            document.querySelectorAll('.char.current').forEach(char => char.classList.remove('current'));
+            document.querySelectorAll('.char.active-word-current').forEach(char => char.classList.remove('active-word-current'));
+
+            const currentWordElement = wordDisplay.children[currentWordIndex];
+            if (currentWordElement) {
+                const currentWordText = words[currentWordIndex]; 
+
+                if (currentCharIndex < currentWordText.length) {
+                    // Cursor is within the word or at the start
+                    const currentCharElement = currentWordElement.children[currentCharIndex];
+                    if (currentCharElement) {
+                        currentCharElement.classList.add('current');
+                        currentCharElement.classList.add('active-word-current');
+                    }
+                } else {
+                    // Cursor is at the end of the word, visually indicate ready for space
+                    // This can be done by simply not highlighting any character within the word,
+                    // or by adding a temporary cursor. For simplicity, just ensure the active-word class is still there.
+                    currentWordElement.classList.add('active-word');
+                }
+
+                // Scroll if the current word is out of view
+                const rect = currentWordElement.getBoundingClientRect();
+                const containerRect = wordDisplay.getBoundingClientRect();
+
+                if (rect.bottom > containerRect.bottom) {
+                    wordDisplay.scrollTop += (rect.bottom - containerRect.bottom) + 20; // Scroll down a bit more
+                } else if (rect.top < containerRect.top) {
+                    wordDisplay.scrollTop -= (containerRect.top - rect.top) + 20; // Scroll up a bit more
+                }
+            }
+        }
+
+        // Set the timer duration
+        function setDuration(duration) {
+            testDuration = duration;
+            timeLeft = testDuration;
+            timerSpan.textContent = timeLeft;
+            resetTest(); // Reset the test whenever duration changes
+            // Update active state of time buttons
+            timeButtons.forEach(btn => {
+                if (parseInt(btn.dataset.time) === duration) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
+        }
+
+        // Start the timer
+        function startTimer() {
+            startTime = new Date().getTime();
+            timerInterval = setInterval(() => {
+                const currentTime = new Date().getTime();
+                const elapsedSeconds = Math.floor((currentTime - startTime) / 1000);
+                timeLeft = testDuration - elapsedSeconds;
+                timerSpan.textContent = Math.max(0, timeLeft); // Ensure timer doesn't go below 0
+
+                if (timeLeft <= 0) {
+                    calculateResults();
+                }
+            }, 1000);
+        }
+
+        // Stop the timer
+        function stopTimer() {
+            clearInterval(timerInterval);
+        }
+
+        // Calculate and display results
+        function calculateResults() {
+            stopTimer();
+            typingInput.disabled = true; // Disable input after test
+
+            let finalTotalTypedChars = 0; 
+            let finalCorrectTypedChars = 0;
+
+            // Iterate through the character typing log to count total and correct characters
+            characterTypingLog.forEach(logEntry => {
+                finalTotalTypedChars++; // Count every character typed by the user
+                if (logEntry.isCorrect) {
+                    finalCorrectTypedChars++;
+                }
+            });
+            
+            const minutes = testDuration / 60; 
+            // WPM is calculated as (total correct characters / 5) / minutes
+            const wpm = minutes > 0 ? Math.round((finalCorrectTypedChars / 5) / minutes) : 0;
+            // Accuracy is calculated as (correct characters / total characters typed) * 100
+            const accuracy = finalTotalTypedChars > 0 ? Math.round((finalCorrectTypedChars / finalTotalTypedChars) * 100) : 0;
+
+            wpmSpan.textContent = wpm;
+            accuracySpan.textContent = accuracy;
+            timerSpan.textContent = 0; // Ensure timer shows 0 at the end
+            correctWordsSpan.textContent = correctWordsCount; // Update correct words display
+            incorrectWordsSpan.textContent = incorrectWordsCount; // Update incorrect words display
+        }
+
+        // Handle typing input (character-by-character validation and visual feedback)
+        typingInput.addEventListener('input', (e) => {
+            if (!hasStarted && timeLeft > 0) {
+                startTimer();
+                hasStarted = true;
+            }
+
+            // If timer ran out or test is over, stop processing input
+            if (timeLeft <= 0 || typingInput.disabled) {
+                typingInput.value = ''; // Clear any input after time runs out
+                return;
+            }
+
+            const typedValue = typingInput.value;
+            const currentWord = words[currentWordIndex];
+            const currentWordElement = wordDisplay.children[currentWordIndex];
+
+            // Reset styling for the current word visually based on current input
+            Array.from(currentWordElement.children).forEach((charSpan, i) => {
+                charSpan.classList.remove('correct', 'incorrect');
+                if (i < typedValue.length) {
+                    if (typedValue[i] === currentWord[i]) {
+                        charSpan.classList.add('correct');
+                    } else {
+                        charSpan.classList.add('incorrect');
+                    }
+                }
+            });
+
+            // Update cursor position
+            currentCharIndex = typedValue.length;
+            highlightCurrentChar();
+        });
+
+
+        // Handle keydown events for Shift+Space
+        typingInput.addEventListener('keydown', (e) => {
+            // If timer ran out or test is over, stop processing keydown
+            if (timeLeft <= 0 || typingInput.disabled) {
+                e.preventDefault(); // Prevent any further input
+                return;
+            }
+
+            if (e.key === ' ' && e.shiftKey) { // Shift + Space to complete word
+                e.preventDefault(); // Prevent default space behavior
+
+                const typedValue = typingInput.value;
+                const currentWord = words[currentWordIndex];
+
+                // Determine if the word was typed correctly
+                if (typedValue === currentWord) {
+                    correctWordsCount++;
+                } else {
+                    incorrectWordsCount++;
+                }
+
+                // Log characters of the current word before advancing
+                // Iterate up to the maximum length of the typed word or the expected word
+                for (let i = 0; i < Math.max(typedValue.length, currentWord.length); i++) {
+                    const typedChar = typedValue[i] || ''; // Use empty string if char not typed
+                    const expectedChar = currentWord[i] || ''; // Use empty string if expected char doesn't exist (e.g., extra typed chars)
+
+                    // A character is correct if it matches the expected char at the same position
+                    // and both actually exist (not empty strings from padding).
+                    const isCharCorrect = (typedChar === expectedChar) && (typedChar !== '');
+
+                    characterTypingLog.push({
+                        typed: typedChar,
+                        expected: expectedChar,
+                        isCorrect: isCharCorrect
+                    });
+                }
+                
+                // Log the space character. It is considered correct if the word was typed perfectly.
+                const isWordPerfectlyTyped = (typedValue === currentWord);
+                characterTypingLog.push({
+                    typed: ' ',
+                    expected: ' ',
+                    isCorrect: isWordPerfectlyTyped
+                });
+
+                // Mark current word as completed
+                const currentWordElement = wordDisplay.children[currentWordIndex];
+                if (currentWordElement) {
+                     currentWordElement.classList.remove('active-word');
+                     currentWordElement.classList.add('completed-word'); // Mark word as completed
+                }
+
+                // Move to next word
+                currentWordIndex++;
+                currentCharIndex = 0;
+                typingInput.value = ''; // Clear input for next word
+
+                if (currentWordIndex < words.length) {
+                    wordDisplay.children[currentWordIndex].classList.add('active-word');
+                    highlightCurrentChar(); // Highlight first char of new word
+                } else {
+                    // All available words completed before timer runs out
+                    calculateResults();
+                }
+            } 
+            // Backspace handling is implicitly done by 'input' event listener, which re-evaluates visual state.
+            // No need for explicit backspace logic here that affects characterTypingLog as it's for submission.
+        });
+
+
+        // Event listeners for time selection buttons
+        timeButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                setDuration(parseInt(button.dataset.time));
+            });
+        });
+
+        // Reset the test
+        restartButton.addEventListener('click', () => {
+            resetTest();
+        });
+
+        // Function to reset all game state
+        function resetTest() {
+            stopTimer();
+            words = [];
+            currentWordIndex = 0;
+            currentCharIndex = 0;
+            hasStarted = false;
+            typingInput.value = '';
+            typingInput.disabled = false;
+            wpmSpan.textContent = '0';
+            accuracySpan.textContent = '0';
+            correctWordsCount = 0; // Reset correct words
+            incorrectWordsCount = 0; // Reset incorrect words
+            correctWordsSpan.textContent = '0'; // Update display
+            incorrectWordsSpan.textContent = '0'; // Update display
+            timeLeft = testDuration; // Reset timeLeft to current testDuration
+            timerSpan.textContent = timeLeft;
+            wordDisplay.scrollTop = 0; // Reset scroll position
+            characterTypingLog = []; // Clear history for new test
+
+            // Remove all class styles from previous test
+            document.querySelectorAll('.char').forEach(char => {
+                char.classList.remove('correct', 'incorrect', 'current', 'active-word-current');
+            });
+            document.querySelectorAll('.word').forEach(word => {
+                word.classList.remove('active-word', 'completed-word');
+            });
+
+            generateWords();
+            typingInput.focus();
+        }
+
+        // Initialize the test on page load
+        window.onload = () => {
+            // Set the default active button and duration on load
+            const defaultButton = document.querySelector('.time-button.active');
+            if (defaultButton) {
+                setDuration(parseInt(defaultButton.dataset.time));
+            } else {
+                setDuration(30); // Fallback to 30s if no active button
+            }
+            resetTest(); 
+        };
+    </script>
+</body>
+</html>
